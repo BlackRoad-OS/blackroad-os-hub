@@ -12,6 +12,7 @@ const APPS = [
   { id: "gitea", name: "Gitea", desc: "Self-hosted Git — 207 repos across 7 orgs on Octavia", icon: "🍵", color: "#34d399", subdomain: "git.blackroad.io", href: "https://git.blackroad.io", external: true },
   { id: "pitstop", name: "Pitstop", desc: "Quick-fix interface — health checks and one-click repairs", icon: "🔧", color: "#F5A623", subdomain: "pitstop.blackroad.io", href: "/fleet" },
   { id: "prism", name: "Prism Console", desc: "Enterprise ERP/CRM — ISI analysis, sales ops, PLM, CPQ", icon: "🏢", color: "#06b6d4", subdomain: "prism.blackroad.io", href: "/repos/blackroad-prism-console" },
+  { id: "activity", name: "Activity Feed", desc: "Live timeline of pushes, PRs, issues, and changes across the org", icon: "📊", color: "#f97316", subdomain: "activity.blackroad.io", href: "/activity" },
   { id: "research", name: "Research Lab", desc: "Quantum geometry, Millennium Problems, consciousness modeling", icon: "🔬", color: "#7c3aed", subdomain: "research.blackroad.io", href: "/repos?cat=research" },
 ];
 
