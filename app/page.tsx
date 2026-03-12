@@ -6,7 +6,7 @@ export const revalidate = 300;
 export default async function HomePage() {
   const [repos, issues, orgInfo] = await Promise.all([
     getRepos().catch(() => []),
-    getOrgIssues("open", 5).catch(() => []),
+    getOrgIssues("open", 20).catch(() => []),
     getOrgInfo().catch(() => null),
   ]);
 
@@ -102,7 +102,7 @@ export default async function HomePage() {
               <div className="flex items-center gap-3 mt-3 text-xs text-gray-600">
                 {r.open_issues_count > 0 && <span>{r.open_issues_count} issues</span>}
                 <span>{new Date(r.pushed_at).toLocaleDateString()}</span>
-                <span>{(r.size / 1024).toFixed(1)}MB</span>
+                <span>{r.size >= 1024 ? `${(r.size / 1024).toFixed(1)}MB` : `${r.size}KB`}</span>
               </div>
             </Link>
           ))}
@@ -141,14 +141,17 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {issues.length > 0 && (
+      {issues.length > 0 && (() => {
+        const AUTO_KEYWORDS = ["automation health", "flaky test", "self-healer", "self-healing", "[automated]", "autonomous"];
+        const realIssues = issues.filter((i) => !AUTO_KEYWORDS.some((kw) => i.title.toLowerCase().includes(kw))).slice(0, 5);
+        return realIssues.length > 0 ? (
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Recent Issues</h2>
             <Link href="/issues" className="text-xs text-gray-500 hover:text-white transition-colors">View all</Link>
           </div>
           <div className="space-y-2">
-            {issues.map((i) => {
+            {realIssues.map((i) => {
               const repoName = i.repository_url.split("/").pop() || "";
               return (
                 <a key={i.html_url} href={i.html_url} target="_blank" rel="noopener"
@@ -162,7 +165,8 @@ export default async function HomePage() {
             })}
           </div>
         </section>
-      )}
+        ) : null;
+      })()}
 
       <div className="text-center text-xs text-gray-600 py-4">
         Live data from GitHub API — revalidates every 5 minutes

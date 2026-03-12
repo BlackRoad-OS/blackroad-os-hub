@@ -5,6 +5,11 @@ import SearchBar from "../components/SearchBar";
 
 export const revalidate = 300;
 
+function formatSize(kb: number): string {
+  if (kb >= 1024) return `${(kb / 1024).toFixed(1)}MB`;
+  return `${kb}KB`;
+}
+
 export default async function ReposPage({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string; sort?: string }> }) {
   const params = await searchParams;
   const repos = await getRepos().catch(() => []);
@@ -101,7 +106,8 @@ export default async function ReposPage({ searchParams }: { searchParams: Promis
               <p className="text-xs text-gray-500 line-clamp-2 mb-3">{r.description || "No description"}</p>
               <div className="flex items-center gap-3 text-xs text-gray-600">
                 {r.language && <span className="px-1.5 py-0.5 bg-white/5 rounded text-gray-400">{r.language}</span>}
-                {r.open_issues_count > 0 && <span>{r.open_issues_count} issues</span>}
+                {r.open_issues_count > 0 && <span className="text-amber-400/80">{r.open_issues_count} issues</span>}
+                <span>{formatSize(r.size)}</span>
                 <span className="ml-auto">{new Date(r.pushed_at).toLocaleDateString()}</span>
               </div>
             </Link>

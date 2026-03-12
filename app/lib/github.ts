@@ -105,17 +105,24 @@ export async function getRepoLanguages(name: string): Promise<Record<string, num
 export function categorizeRepo(r: Repo): string {
   const n = r.name.toLowerCase();
   const d = (r.description || "").toLowerCase();
+  // Specific matches first
+  if (n === "cece-os" || n.includes("lucidia") || n.includes("earth")) return "lucidia";
+  if (n === ".github" || n.endsWith(".github.io")) return "docs";
+  if (n.includes("english-revolution") || n.includes("training")) return "education";
+  if (n.includes("whisper") || n.includes("vllm") || n.includes("localai") || n.includes("inference") || n.includes("langchain") || n.includes("ollama") || (n.includes("model") && !n.includes("simulation"))) return "ai";
   if (n.includes("agent") || d.includes("agent")) return "agents";
-  if (n.includes("infra") || n.includes("fleet") || n.includes("cluster") || n.includes("pi-ops") || d.includes("infrastructure")) return "infra";
+  if (n.includes("minio") || n.includes("infra") || n.includes("fleet") || n.includes("cluster") || n.includes("pi-ops") || n.includes("hardware") || n.includes("pi-holo") || n.includes("internet") || n.includes("workers") || n.includes("environments") || d.includes("infrastructure")) return "infra";
   if (n.includes("api") || n.includes("gateway") || n.includes("webhook")) return "api";
   if (n.includes("pack-") || n.includes("plugin")) return "packs";
-  if (n.includes("lucidia") || n.includes("earth")) return "lucidia";
-  if (n.includes("deploy") || n.includes("cicd") || n.includes("github-action")) return "devops";
-  if (n.includes("web") || n.includes("app") || n.includes("site") || n.includes("landing") || n.includes("dashboard") || n.includes("console")) return "web";
-  if (n.includes("doc") || n.includes("brand") || n.includes("hello")) return "docs";
-  if (n.includes("math") || n.includes("quantum") || n.includes("experiment") || n.includes("simulation")) return "research";
+  if (n.includes("deploy") || n.includes("cicd") || n.includes("github-action") || n.includes("cron") || n.includes("disaster") || n.includes("beacon") || n.includes("pitstop") || n.includes("roadworkflow") || n.includes("operator")) return "devops";
   if (n.includes("prism") || n.includes("sales") || n.includes("compliance") || n.includes("audit")) return "enterprise";
-  if (n.includes("auth") || n.includes("key") || n.includes("secret") || n.includes("vpn")) return "security";
+  if (n.includes("auth") || n.includes("key") || n.includes("secret") || n.includes("vpn") || n.includes("ratelimit") || n.includes("flags")) return "security";
+  if (n.includes("math") || n.includes("quantum") || n.includes("experiment") || n.includes("simulation") || n.includes("research") || n.includes("codex") || n.includes("roadcoin") || n.includes("genesis")) return "research";
+  if (n.includes("web") || n.includes("site") || n.includes("landing") || n.includes("dashboard") || n.includes("console") || n.includes("portal") || n.includes("react-component") || n.includes("carpool") || n.includes("social-platform") || n.includes("metaverse") || n.includes("pixel")) return "web";
+  if (n.includes("doc") || n.includes("brand") || n.includes("hello") || n.includes("home") || n.includes("archive")) return "docs";
+  if (n.includes("cli") || n.includes("roadpad") || n.includes("roadlog") || n.includes("roaddb") || n.includes("roadcommand") || n.includes("roadmarket") || n.includes("roadstudio") || n.includes("canvas") || n.includes("tools") || n.includes("raycast") || n.includes("postman") || n.includes("notion") || n.includes("linear") || n.includes("email") || n.includes("analytics")) return "tools";
+  if (n.includes("music") || n.includes("resume") || n.includes("personal") || n.includes("public") || n.includes("product-hunt") || n.includes("ideas") || n.includes("simple-launch")) return "misc";
+  if (n.includes("app")) return "web";
   return "core";
 }
 
@@ -279,15 +286,19 @@ export async function getOrgInfo(): Promise<{ public_repos: number; name: string
 
 export const CATEGORIES: Record<string, { label: string; color: string; icon: string }> = {
   agents: { label: "AI Agents", color: "#2979FF", icon: "🤖" },
+  ai: { label: "AI & ML", color: "#00D4FF", icon: "🧠" },
   infra: { label: "Infrastructure", color: "#F5A623", icon: "🏗️" },
   api: { label: "APIs & Gateways", color: "#34d399", icon: "🔌" },
   packs: { label: "Extension Packs", color: "#9C27B0", icon: "📦" },
   lucidia: { label: "Lucidia", color: "#FF1D6C", icon: "🌀" },
-  devops: { label: "DevOps & CI/CD", color: "#ef4444", icon: "🚀" },
+  devops: { label: "DevOps & Ops", color: "#ef4444", icon: "🚀" },
   web: { label: "Web & Apps", color: "#fbbf24", icon: "🌐" },
+  tools: { label: "Tools & CLIs", color: "#f97316", icon: "🔧" },
   docs: { label: "Docs & Brand", color: "#6b7280", icon: "📝" },
   research: { label: "Research & Math", color: "#7c3aed", icon: "🔬" },
+  education: { label: "Education", color: "#10b981", icon: "📖" },
   enterprise: { label: "Enterprise", color: "#06b6d4", icon: "🏢" },
-  security: { label: "Security & Auth", color: "#ef4444", icon: "🔐" },
+  security: { label: "Security", color: "#ef4444", icon: "🔐" },
+  misc: { label: "Other", color: "#4b5563", icon: "📌" },
   core: { label: "Core Systems", color: "#f97316", icon: "⚙️" },
 };
