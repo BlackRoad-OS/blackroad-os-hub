@@ -1,18 +1,30 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { getRepos, categorizeRepo, CATEGORIES } from "../lib/github";
+import SearchBar from "../components/SearchBar";
 
 export const revalidate = 300;
 
-export default async function ReposPage({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string }> }) {
+export default async function ReposPage({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string; sort?: string }> }) {
   const params = await searchParams;
   const repos = await getRepos().catch(() => []);
   const filterCat = params.cat || "";
   const filterQ = (params.q || "").toLowerCase();
+  const sortBy = params.sort || "updated";
 
   const filtered = repos.filter((r) => {
     if (filterCat && categorizeRepo(r) !== filterCat) return false;
-    if (filterQ && !r.name.toLowerCase().includes(filterQ) && !(r.description || "").toLowerCase().includes(filterQ)) return false;
+    if (filterQ && !r.name.toLowerCase().includes(filterQ) && !(r.description || "").toLowerCase().includes(filterQ) && !(r.language || "").toLowerCase().includes(filterQ) && !r.topics.some(t => t.includes(filterQ))) return false;
     return true;
+  });
+
+  // Sort
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "name") return a.name.localeCompare(b.name);
+    if (sortBy === "issues") return b.open_issues_count - a.open_issues_count;
+    if (sortBy === "size") return b.size - a.size;
+    if (sortBy === "stars") return b.stargazers_count - a.stargazers_count;
+    return b.pushed_at.localeCompare(a.pushed_at); // default: updated
   });
 
   const catCounts: Record<string, number> = {};
@@ -21,13 +33,45 @@ export default async function ReposPage({ searchParams }: { searchParams: Promis
     catCounts[cat] = (catCounts[cat] || 0) + 1;
   }
 
+  // Language stats for this filtered view
+  const langCounts: Record<string, number> = {};
+  for (const r of filtered) {
+    const lang = r.language || "Other";
+    langCounts[lang] = (langCounts[lang] || 0) + 1;
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">Repositories</h1>
           <p className="text-gray-500 text-sm mt-1">{filtered.length} of {repos.length} repos</p>
         </div>
+        <Link href="/compare" className="px-4 py-2 text-xs border border-white/10 rounded-xl text-gray-400 hover:text-white hover:border-white/20 transition-all">
+          Compare repos
+        </Link>
+      </div>
+
+      {/* Search */}
+      <Suspense>
+        <SearchBar placeholder="Search repos by name, description, language, or topic..." />
+      </Suspense>
+
+      {/* Sort */}
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-gray-500">Sort:</span>
+        {[
+          { key: "updated", label: "Recently updated" },
+          { key: "name", label: "Name" },
+          { key: "issues", label: "Most issues" },
+          { key: "size", label: "Largest" },
+          { key: "stars", label: "Stars" },
+        ].map((s) => (
+          <Link key={s.key} href={`/repos?${new URLSearchParams({ ...(filterCat ? { cat: filterCat } : {}), ...(filterQ ? { q: params.q || "" } : {}), sort: s.key }).toString()}`}
+            className={`px-2 py-1 rounded transition-all ${sortBy === s.key ? "text-white bg-white/10" : "text-gray-500 hover:text-white"}`}>
+            {s.label}
+          </Link>
+        ))}
       </div>
 
       {/* Category filters */}
@@ -45,7 +89,7 @@ export default async function ReposPage({ searchParams }: { searchParams: Promis
 
       {/* Repo grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {filtered.map((r) => {
+        {sorted.map((r) => {
           const cat = CATEGORIES[categorizeRepo(r)];
           return (
             <Link key={r.name} href={`/repos/${r.name}`}

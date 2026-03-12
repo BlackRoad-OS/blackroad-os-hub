@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { getRepo, getRepoReadme, getRepoIssues, getRepoLanguages, categorizeRepo, CATEGORIES } from "../../lib/github";
+import { getRepo, getRepoReadme, getRepoIssues, getRepoLanguages, getRepoWorkflowRuns, categorizeRepo, CATEGORIES } from "../../lib/github";
 
 export const revalidate = 120;
 
 export default async function RepoDetailPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
-  const [repo, readme, issues, languages] = await Promise.all([
+  const [repo, readme, issues, languages, ciRuns] = await Promise.all([
     getRepo(name).catch(() => null),
     getRepoReadme(name),
     getRepoIssues(name).catch(() => []),
     getRepoLanguages(name),
+    getRepoWorkflowRuns(name, 10),
   ]);
 
   if (!repo) {
@@ -97,6 +98,29 @@ export default async function RepoDetailPage({ params }: { params: Promise<{ nam
                 ))}
               </a>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* CI Status */}
+      {ciRuns.length > 0 && (
+        <div>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">CI / GitHub Actions</h2>
+          <div className="space-y-1.5">
+            {ciRuns.slice(0, 8).map((run) => {
+              const color = run.conclusion === "success" ? "#34d399" : run.conclusion === "failure" ? "#ef4444" : run.conclusion === "cancelled" ? "#6b7280" : "#F5A623";
+              const icon = run.conclusion === "success" ? "✓" : run.conclusion === "failure" ? "✕" : run.conclusion === "cancelled" ? "⊘" : "●";
+              return (
+                <a key={run.id} href={run.html_url} target="_blank" rel="noopener"
+                  className="flex items-center gap-3 px-4 py-2.5 bg-white/[0.03] border border-white/5 rounded-xl hover:bg-white/[0.05] transition-all">
+                  <span className="text-sm font-mono" style={{ color }}>{icon}</span>
+                  <span className="text-sm text-white truncate flex-1">{run.name}</span>
+                  <span className="text-xs text-gray-600">{run.head_branch}</span>
+                  <span className="text-xs" style={{ color }}>{run.conclusion || run.status}</span>
+                  <span className="text-xs text-gray-600">{new Date(run.created_at).toLocaleDateString()}</span>
+                </a>
+              );
+            })}
           </div>
         </div>
       )}

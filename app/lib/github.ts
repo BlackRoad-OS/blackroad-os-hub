@@ -112,6 +112,62 @@ export function categorizeRepo(r: Repo): string {
   return "core";
 }
 
+// GitHub Actions workflows
+export interface Workflow {
+  id: number;
+  name: string;
+  state: string;
+  path: string;
+}
+
+export interface WorkflowRun {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  created_at: string;
+  updated_at: string;
+  html_url: string;
+  head_branch: string;
+}
+
+export async function getRepoWorkflows(name: string): Promise<Workflow[]> {
+  try {
+    const data = await ghFetch<{ workflows: Workflow[] }>(
+      `https://api.github.com/repos/${ORG}/${name}/actions/workflows`,
+      300
+    );
+    return data.workflows || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getRepoWorkflowRuns(name: string, perPage = 10): Promise<WorkflowRun[]> {
+  try {
+    const data = await ghFetch<{ workflow_runs: WorkflowRun[] }>(
+      `https://api.github.com/repos/${ORG}/${name}/actions/runs?per_page=${perPage}`,
+      120
+    );
+    return data.workflow_runs || [];
+  } catch {
+    return [];
+  }
+}
+
+// Get repo dependencies (package.json)
+export async function getRepoPackageJson(name: string): Promise<Record<string, unknown> | null> {
+  try {
+    const data = await ghFetch<{ content: string }>(
+      `https://api.github.com/repos/${ORG}/${name}/contents/package.json`,
+      600
+    );
+    return JSON.parse(Buffer.from(data.content, "base64").toString("utf-8"));
+  } catch {
+    return null;
+  }
+}
+
 export const CATEGORIES: Record<string, { label: string; color: string; icon: string }> = {
   agents: { label: "AI Agents", color: "#2979FF", icon: "🤖" },
   infra: { label: "Infrastructure", color: "#F5A623", icon: "🏗️" },
