@@ -36,7 +36,14 @@ async function ghFetch<T>(url: string, revalidate = 300): Promise<T> {
     headers,
     next: { revalidate },
   });
-  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${url}`);
+  if (!res.ok) {
+    // Log but don't crash on rate limits or auth issues
+    if (res.status === 403 || res.status === 429) {
+      console.warn(`GitHub API ${res.status}: ${url} (rate limited)`);
+      throw new Error(`GitHub API ${res.status}: ${url}`);
+    }
+    throw new Error(`GitHub API ${res.status}: ${url}`);
+  }
   return res.json();
 }
 
@@ -163,6 +170,108 @@ export async function getRepoPackageJson(name: string): Promise<Record<string, u
       600
     );
     return JSON.parse(Buffer.from(data.content, "base64").toString("utf-8"));
+  } catch {
+    return null;
+  }
+}
+
+// Get repo directory contents
+export interface RepoFile {
+  name: string;
+  path: string;
+  type: "file" | "dir";
+  size: number;
+  html_url: string;
+  download_url: string | null;
+}
+
+export async function getRepoContents(name: string, path = ""): Promise<RepoFile[]> {
+  try {
+    return ghFetch<RepoFile[]>(
+      `https://api.github.com/repos/${ORG}/${name}/contents/${path}`,
+      600
+    );
+  } catch {
+    return [];
+  }
+}
+
+// Get file content (raw text)
+export async function getFileContent(name: string, path: string): Promise<string> {
+  try {
+    const data = await ghFetch<{ content: string }>(
+      `https://api.github.com/repos/${ORG}/${name}/contents/${path}`,
+      600
+    );
+    return Buffer.from(data.content, "base64").toString("utf-8");
+  } catch {
+    return "";
+  }
+}
+
+// Get repo contributors
+export interface Contributor {
+  login: string;
+  avatar_url: string;
+  contributions: number;
+  html_url: string;
+}
+
+export async function getRepoContributors(name: string): Promise<Contributor[]> {
+  try {
+    return ghFetch<Contributor[]>(
+      `https://api.github.com/repos/${ORG}/${name}/contributors?per_page=20`,
+      600
+    );
+  } catch {
+    return [];
+  }
+}
+
+// Get repo commits (recent)
+export interface Commit {
+  sha: string;
+  commit: {
+    message: string;
+    author: { name: string; date: string };
+  };
+  html_url: string;
+  author: { login: string; avatar_url: string } | null;
+}
+
+export async function getRepoCommits(name: string, perPage = 10): Promise<Commit[]> {
+  try {
+    return ghFetch<Commit[]>(
+      `https://api.github.com/repos/${ORG}/${name}/commits?per_page=${perPage}`,
+      120
+    );
+  } catch {
+    return [];
+  }
+}
+
+// Get org members
+export interface OrgMember {
+  login: string;
+  avatar_url: string;
+  html_url: string;
+}
+
+export async function getOrgMembers(): Promise<OrgMember[]> {
+  try {
+    return ghFetch<OrgMember[]>(
+      `https://api.github.com/orgs/${ORG}/members?per_page=50`,
+      600
+    );
+  } catch {
+    return [];
+  }
+}
+
+// Get org-wide stats
+export async function getOrgInfo(): Promise<{ public_repos: number; name: string; description: string | null; blog: string; created_at: string } | null> {
+  try {
+    return ghFetch<any>(`https://api.github.com/orgs/${ORG}`, 600);
   } catch {
     return null;
   }

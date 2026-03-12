@@ -1,121 +1,39 @@
 import Link from "next/link";
+import { getRepo, getRepoReadme, getRepoContents, getRepoCommits, getRepoLanguages, getRepoContributors } from "../lib/github";
 
-export const revalidate = 600;
+export const revalidate = 300;
 
-const TENSES = [
-  {
-    name: "Simple Present",
-    emoji: "🔁",
-    visual: "REPEATS / ALWAYS TRUE",
-    pattern: "[person] + [verb] + [thing]",
-    examples: [
-      { person: "👤 I", verb: "eat", thing: "🍕 pizza", note: "every day" },
-      { person: "👤 She", verb: "eats", thing: "🍕 pizza", note: "habit" },
-      { person: "☀️ Sun", verb: "rises", thing: "🌅 east", note: "fact" },
-    ],
-  },
-  {
-    name: "Present Continuous",
-    emoji: "▶️",
-    visual: "PLAYING NOW",
-    pattern: "[person] + am/is/are + [verb]ing + [thing]",
-    examples: [
-      { person: "👤 I", verb: "am eating", thing: "🍕 pizza", note: "right now!" },
-      { person: "👤 She", verb: "is eating", thing: "🍕 pizza", note: "now!" },
-      { person: "👥 They", verb: "are eating", thing: "🍕 pizza", note: "now!" },
-    ],
-  },
-  {
-    name: "Present Perfect",
-    emoji: "✅",
-    visual: "COMPLETED, AFFECTS NOW",
-    pattern: "[person] + have/has + [past verb] + [thing]",
-    examples: [
-      { person: "👤 I", verb: "have eaten", thing: "🍕 pizza", note: "and I'm full!" },
-      { person: "👤 She", verb: "has eaten", thing: "🍕 pizza", note: "recently" },
-    ],
-  },
-  {
-    name: "Simple Past",
-    emoji: "⏮️",
-    visual: "REWIND, IT'S DONE",
-    pattern: "[person] + [past verb] + [thing]",
-    examples: [
-      { person: "👤 I", verb: "ate", thing: "🍕 pizza", note: "yesterday" },
-      { person: "🏛️ Rome", verb: "fell", thing: "💥", note: "long ago" },
-    ],
-  },
-  {
-    name: "Past Continuous",
-    emoji: "⏸️▶️",
-    visual: "WAS PLAYING THEN",
-    pattern: "[person] + was/were + [verb]ing + [thing]",
-    examples: [
-      { person: "👤 I", verb: "was eating", thing: "🍕 pizza", note: "when you called" },
-      { person: "👥 They", verb: "were eating", thing: "🍕 pizza", note: "at 8pm" },
-    ],
-  },
-  {
-    name: "Simple Future",
-    emoji: "⏩",
-    visual: "FAST FORWARD, WILL DO",
-    pattern: "[person] + will + [verb] + [thing]",
-    examples: [
-      { person: "👤 I", verb: "will eat", thing: "🍕 pizza", note: "tomorrow" },
-      { person: "☀️ Sun", verb: "will rise", thing: "🌅", note: "tomorrow" },
-    ],
-  },
-  {
-    name: "Future Perfect",
-    emoji: "✅⏩",
-    visual: "WILL BE CHECKED OFF",
-    pattern: "[person] + will have + [past verb] + [thing]",
-    examples: [
-      { person: "👤 I", verb: "will have eaten", thing: "🍕 pizza", note: "by 8pm" },
-      { person: "👤 She", verb: "will have left", thing: "🏠 home", note: "by then" },
-    ],
-  },
-];
+export default async function EnglishPage() {
+  const [repo, readme, allFiles, commits, languages, contributors] = await Promise.all([
+    getRepo("english-revolution").catch(() => null),
+    getRepoReadme("english-revolution").catch(() => ""),
+    getRepoContents("english-revolution").catch(() => []),
+    getRepoCommits("english-revolution", 10).catch(() => []),
+    getRepoLanguages("english-revolution").catch(() => ({})),
+    getRepoContributors("english-revolution").catch(() => []),
+  ]);
 
-const COURSES = [
-  { name: "Core English", file: "emoji_english.py", icon: "🎯", desc: "Verb tenses, sentence patterns, visual grammar" },
-  { name: "Advanced Grammar", file: "emoji_advanced_grammar.py", icon: "🧠", desc: "Complex structures, conditionals, modals" },
-  { name: "Business English", file: "emoji_business_english.py", icon: "💼", desc: "Meetings, emails, reports, negotiations" },
-  { name: "Academic English", file: "emoji_academic_english.py", icon: "🎓", desc: "Research writing, citations, formal tone" },
-  { name: "Conversation", file: "emoji_conversation_english.py", icon: "💬", desc: "Small talk, debates, storytelling" },
-  { name: "Email Mastery", file: "emoji_email_mastery.py", icon: "📧", desc: "Professional emails, tone, structure" },
-  { name: "Interview Prep", file: "emoji_interview_mastery.py", icon: "🎤", desc: "STAR method, tough questions, confidence" },
-  { name: "Idioms", file: "emoji_idioms_english.py", icon: "🎭", desc: "Common idioms, metaphors, slang" },
-  { name: "Pronunciation", file: "emoji_pronunciation_guide.py", icon: "🗣️", desc: "Sound patterns, stress, intonation" },
-  { name: "Figurative Language", file: "emoji_figurative_language.py", icon: "🎨", desc: "Metaphor, simile, irony, hyperbole" },
-  { name: "Vocabulary", file: "emoji_vocabulary_mastery.py", icon: "📚", desc: "Word roots, prefixes, context clues" },
-  { name: "Speaking", file: "emoji_speaking_mastery.py", icon: "🎙️", desc: "Fluency, confidence, public speaking" },
-  { name: "Listening", file: "emoji_listening_mastery.py", icon: "👂", desc: "Comprehension, note-taking, accents" },
-  { name: "Reading", file: "emoji_reading_mastery.py", icon: "📖", desc: "Speed reading, analysis, inference" },
-  { name: "Writing", file: "emoji_writing_practice.py", icon: "✍️", desc: "Essays, creative writing, structure" },
-  { name: "Memory", file: "emoji_memory_mastery.py", icon: "🧩", desc: "Mnemonics, spaced repetition, recall" },
-  { name: "Presentation", file: "emoji_presentation_english.py", icon: "📊", desc: "Slides, delivery, audience engagement" },
-  { name: "Leadership", file: "emoji_leadership_english.py", icon: "👑", desc: "Delegation, feedback, vision casting" },
-  { name: "Negotiation", file: "emoji_negotiation_english.py", icon: "🤝", desc: "Persuasion, concessions, BATNA" },
-  { name: "Networking", file: "emoji_networking_english.py", icon: "🌐", desc: "Elevator pitches, follow-ups, LinkedIn" },
-  { name: "Social Media", file: "emoji_social_media_english.py", icon: "📱", desc: "Captions, hashtags, viral writing" },
-  { name: "Test Prep", file: "emoji_test_preparation.py", icon: "📝", desc: "TOEFL, IELTS, Cambridge exam strategies" },
-  { name: "Grammar Mistakes", file: "emoji_grammar_mistakes.py", icon: "⚠️", desc: "Top 50 common errors and fixes" },
-  { name: "Accent Reduction", file: "emoji_accent_reduction.py", icon: "🔊", desc: "Minimal pairs, rhythm, connected speech" },
-  { name: "Cultural English", file: "emoji_cultural_english.py", icon: "🌍", desc: "Regional dialects, cultural context" },
-  { name: "Study Skills", file: "emoji_study_skills_mastery.py", icon: "📐", desc: "Active recall, Pomodoro, deep work" },
-  { name: "Note Taking", file: "emoji_note_taking_mastery.py", icon: "📓", desc: "Cornell method, mind maps, synthesis" },
-  { name: "Specialized", file: "emoji_specialized_english.py", icon: "🔧", desc: "Medical, legal, technical vocabulary" },
-];
+  const courseFiles = allFiles
+    .filter((f) => f.name.startsWith("emoji_") && f.name.endsWith(".py"))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const htmlFiles = allFiles.filter((f) => f.name.endsWith(".html"));
+  const totalLangBytes = Object.values(languages).reduce((a, b) => a + b, 0);
+  const totalSizeKB = courseFiles.reduce((s, f) => s + f.size, 0) / 1024;
 
-const PATTERN_SUMMARY = [
-  { pattern: "Simple", meaning: "Just do it", emoji: "🏃" },
-  { pattern: "Continuous", meaning: "Doing it now", emoji: "🏃‍♂️▶️" },
-  { pattern: "Perfect", meaning: "Already done", emoji: "✅" },
-  { pattern: "Perfect + ing", meaning: "Was doing before", emoji: "✅▶️" },
-];
+  const COURSE_ICONS: Record<string, string> = {
+    emoji_english: "🎯", emoji_english_advanced: "🧠", emoji_advanced_grammar: "📐",
+    emoji_business_english: "💼", emoji_academic_english: "🎓", emoji_conversation_english: "💬",
+    emoji_email_mastery: "📧", emoji_interview_mastery: "🎤", emoji_job_interview_english: "👔",
+    emoji_idioms_english: "🎭", emoji_pronunciation_guide: "🗣️", emoji_figurative_language: "🎨",
+    emoji_vocabulary_mastery: "📚", emoji_speaking_mastery: "🎙️", emoji_listening_mastery: "👂",
+    emoji_listening_comprehension: "🔊", emoji_reading_mastery: "📖", emoji_writing_practice: "✍️",
+    emoji_memory_mastery: "🧩", emoji_presentation_english: "📊", emoji_leadership_english: "👑",
+    emoji_negotiation_english: "🤝", emoji_networking_english: "🌐", emoji_social_media_english: "📱",
+    emoji_test_preparation: "📝", emoji_grammar_mistakes: "⚠️", emoji_accent_reduction: "🔊",
+    emoji_cultural_english: "🌍", emoji_study_skills_mastery: "📐", emoji_note_taking_mastery: "📓",
+    emoji_specialized_english: "🔧",
+  };
 
-export default function EnglishPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
       {/* Hero */}
@@ -126,21 +44,66 @@ export default function EnglishPage() {
             <span className="gradient-text">Emoji English Revolution</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-2">
-            English grammar visualized with emojis. Strip away the gatekeeping. Show the patterns.
+            {repo?.description || "English grammar visualized with emojis. Strip away the gatekeeping."}
           </p>
-          <p className="text-sm text-gray-500">28 courses. Zero boring textbooks.</p>
+          <p className="text-sm text-gray-500">
+            {courseFiles.length} courses. {totalSizeKB.toFixed(0)}KB of content. Zero boring textbooks.
+          </p>
           <div className="flex justify-center gap-4 mt-8">
-            <a href="https://blackroad-os.github.io/english-revolution/interactive-demo.html" target="_blank" rel="noopener"
-              className="px-6 py-3 bg-gradient-to-r from-[#F5A623] to-[#FF1D6C] rounded-xl text-white font-semibold hover:opacity-90 transition-all">
-              Interactive Demo
-            </a>
-            <a href="https://github.com/BlackRoad-OS/english-revolution" target="_blank" rel="noopener"
+            {htmlFiles.length > 0 && (
+              <a href={`https://blackroad-os.github.io/english-revolution/${htmlFiles[0].name}`} target="_blank" rel="noopener"
+                className="px-6 py-3 bg-gradient-to-r from-[#F5A623] to-[#FF1D6C] rounded-xl text-white font-semibold hover:opacity-90 transition-all">
+                Interactive Demo
+              </a>
+            )}
+            <a href={repo?.html_url || "https://github.com/BlackRoad-OS/english-revolution"} target="_blank" rel="noopener"
               className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-semibold hover:bg-white/10 transition-all">
               Source Code
             </a>
           </div>
         </div>
       </section>
+
+      {/* Stats */}
+      <section className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="text-xs text-gray-500">Courses</div>
+          <div className="text-2xl font-bold text-[#FF1D6C] mt-1">{courseFiles.length}</div>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="text-xs text-gray-500">Content Size</div>
+          <div className="text-2xl font-bold text-[#F5A623] mt-1">{totalSizeKB.toFixed(0)}KB</div>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="text-xs text-gray-500">Demos</div>
+          <div className="text-2xl font-bold text-[#2979FF] mt-1">{htmlFiles.length}</div>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="text-xs text-gray-500">Commits</div>
+          <div className="text-2xl font-bold text-[#34d399] mt-1">{commits.length}+</div>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="text-xs text-gray-500">Stars</div>
+          <div className="text-2xl font-bold text-[#9C27B0] mt-1">{repo?.stargazers_count || 0}</div>
+        </div>
+      </section>
+
+      {/* Languages */}
+      {totalLangBytes > 0 && (
+        <section>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Languages</h2>
+          <div className="flex h-2 rounded-full overflow-hidden bg-white/5 mb-2">
+            {Object.entries(languages).map(([lang, bytes]) => (
+              <div key={lang} className="h-full" style={{ width: `${(bytes / totalLangBytes) * 100}%`, backgroundColor: lang === "Python" ? "#3572A5" : lang === "HTML" ? "#e34c26" : "#6b7280" }} title={lang} />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {Object.entries(languages).map(([lang, bytes]) => (
+              <span key={lang} className="text-xs text-gray-400">{lang} {((bytes / totalLangBytes) * 100).toFixed(1)}%</span>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Core concept */}
       <section className="bg-white/[0.03] border border-white/5 rounded-2xl p-8">
@@ -151,7 +114,12 @@ export default function EnglishPage() {
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {PATTERN_SUMMARY.map((p) => (
+          {[
+            { pattern: "Simple", meaning: "Just do it", emoji: "🏃" },
+            { pattern: "Continuous", meaning: "Doing it now", emoji: "🏃‍♂️▶️" },
+            { pattern: "Perfect", meaning: "Already done", emoji: "✅" },
+            { pattern: "Perfect + ing", meaning: "Was doing before", emoji: "✅▶️" },
+          ].map((p) => (
             <div key={p.pattern} className="text-center p-3 bg-white/5 rounded-xl">
               <div className="text-2xl mb-1">{p.emoji}</div>
               <div className="text-sm font-semibold text-white">{p.pattern}</div>
@@ -161,67 +129,87 @@ export default function EnglishPage() {
         </div>
       </section>
 
-      {/* Verb tenses interactive */}
+      {/* All courses — live from GitHub */}
       <section>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Verb Tenses — The Visual Way</h2>
-        <div className="space-y-4">
-          {TENSES.map((t) => (
-            <div key={t.name} className="bg-white/[0.03] border border-white/5 rounded-xl p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">{t.emoji}</span>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">{t.name}</h3>
-                  <span className="text-xs text-gray-500">{t.visual}</span>
-                </div>
-              </div>
-              <div className="text-xs font-mono text-gray-400 mb-3 px-3 py-1.5 bg-white/5 rounded-lg inline-block">
-                {t.pattern}
-              </div>
-              <div className="space-y-1.5">
-                {t.examples.map((ex, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-300 w-20 flex-shrink-0">{ex.person}</span>
-                    <span className="text-[#FF1D6C] font-semibold">{ex.verb}</span>
-                    <span className="text-gray-300">{ex.thing}</span>
-                    <span className="text-xs text-gray-600 ml-auto">({ex.note})</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* All courses */}
-      <section>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">All {COURSES.length} Courses</h2>
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">All {courseFiles.length} Courses (live from repo)</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {COURSES.map((c) => (
-            <a key={c.name}
-              href={`https://github.com/BlackRoad-OS/english-revolution/blob/main/${c.file}`}
-              target="_blank" rel="noopener"
-              className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all group">
-              <div className="flex items-start gap-3">
-                <span className="text-xl">{c.icon}</span>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-white group-hover:text-[#FF1D6C] transition-colors">{c.name}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{c.desc}</div>
-                  <div className="text-xs font-mono text-gray-600 mt-1">{c.file}</div>
+          {courseFiles.map((f) => {
+            const baseName = f.name.replace(".py", "");
+            const icon = COURSE_ICONS[baseName] || "📘";
+            const label = baseName
+              .replace("emoji_", "")
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase());
+            return (
+              <a key={f.name} href={f.html_url} target="_blank" rel="noopener"
+                className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all group">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl">{icon}</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-white group-hover:text-[#FF1D6C] transition-colors">{label}</div>
+                    <div className="text-xs text-gray-600 font-mono mt-1">{f.name} — {(f.size / 1024).toFixed(0)}KB</div>
+                  </div>
                 </div>
-              </div>
-            </a>
-          ))}
+              </a>
+            );
+          })}
         </div>
       </section>
 
-      {/* Philosophy */}
-      <section className="bg-white/[0.03] border border-white/5 rounded-2xl p-8 text-center">
-        <blockquote className="text-lg text-gray-300 italic max-w-2xl mx-auto">
-          &ldquo;Traditional textbooks: 500 pages of rules. This approach: VISUAL PATTERNS you SEE instantly.
-          Same philosophy as quantum computing — strip away the gatekeeping, show the patterns.&rdquo;
-        </blockquote>
-      </section>
+      {/* Interactive demos */}
+      {htmlFiles.length > 0 && (
+        <section>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Interactive Demos</h2>
+          <div className="grid md:grid-cols-3 gap-3">
+            {htmlFiles.map((f) => {
+              const label = f.name.replace(".html", "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+              return (
+                <a key={f.name} href={`https://blackroad-os.github.io/english-revolution/${f.name}`} target="_blank" rel="noopener"
+                  className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-[#F5A623]/30 transition-all group">
+                  <div className="text-2xl mb-2">🌐</div>
+                  <div className="text-sm font-semibold text-white group-hover:text-[#F5A623] transition-colors">{label}</div>
+                  <div className="text-xs text-gray-600 font-mono mt-1">{(f.size / 1024).toFixed(0)}KB</div>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
+      {/* Recent commits */}
+      {commits.length > 0 && (
+        <section>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Recent Commits</h2>
+          <div className="space-y-1.5">
+            {commits.slice(0, 6).map((c) => (
+              <a key={c.sha} href={c.html_url} target="_blank" rel="noopener"
+                className="flex items-center gap-3 px-4 py-2.5 bg-white/[0.03] border border-white/5 rounded-xl hover:bg-white/[0.05] transition-all">
+                <span className="text-xs font-mono text-[#F5A623]">{c.sha.slice(0, 7)}</span>
+                <span className="text-sm text-gray-300 truncate flex-1">{c.commit.message.split("\n")[0]}</span>
+                <span className="text-xs text-gray-600">{new Date(c.commit.author.date).toLocaleDateString()}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Contributors */}
+      {contributors.length > 0 && (
+        <section>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Contributors</h2>
+          <div className="flex flex-wrap gap-2">
+            {contributors.map((c) => (
+              <a key={c.login} href={c.html_url} target="_blank" rel="noopener"
+                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full hover:border-white/20 transition-all">
+                <span className="text-xs text-gray-300">{c.login}</span>
+                <span className="text-xs text-gray-600">{c.contributions}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Links */}
       <section className="flex flex-wrap gap-3">
         <Link href="/repos/english-revolution" className="px-4 py-2 text-xs border border-white/10 rounded-xl text-gray-400 hover:text-white hover:border-white/20 transition-all">
           View in Repo Browser
