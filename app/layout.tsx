@@ -23,6 +23,9 @@ const NAV = [
   { href: "/compare", label: "Compare" },
   { href: "/status", label: "Status" },
   { href: "/docs", label: "Docs" },
+  { href: "/simulation", label: "Simulation" },
+  { href: "/english", label: "English" },
+  { href: "/math", label: "Math" },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

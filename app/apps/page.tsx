@@ -14,6 +14,11 @@ const APPS = [
   { id: "prism", name: "Prism Console", desc: "Enterprise ERP/CRM — ISI analysis, sales ops, PLM, CPQ", icon: "🏢", color: "#06b6d4", subdomain: "prism.blackroad.io", href: "/repos/blackroad-prism-console" },
   { id: "activity", name: "Activity Feed", desc: "Live timeline of pushes, PRs, issues, and changes across the org", icon: "📊", color: "#f97316", subdomain: "activity.blackroad.io", href: "/activity" },
   { id: "research", name: "Research Lab", desc: "Quantum geometry, Millennium Problems, consciousness modeling", icon: "🔬", color: "#7c3aed", subdomain: "research.blackroad.io", href: "/repos?cat=research" },
+  { id: "simulation", name: "Simulation Hypothesis", desc: "The Trivial Zero — computational proof that reality is self-referential", icon: "🧬", color: "#FF1D6C", subdomain: "simulation.blackroad.io", href: "/simulation" },
+  { id: "english", name: "English Revolution", desc: "28 emoji-based English courses — grammar visualized, no textbooks", icon: "🔥", color: "#F5A623", subdomain: "english.blackroad.io", href: "/english" },
+  { id: "math", name: "Lucidia Math", desc: "Consciousness modeling, unified geometry, prime exploration, quantum finance", icon: "📐", color: "#2979FF", subdomain: "math.blackroad.io", href: "/math" },
+  { id: "graph", name: "Dependency Graph", desc: "Repo relationship map — naming patterns, topics, category clusters", icon: "🕸️", color: "#7c3aed", subdomain: "graph.blackroad.io", href: "/graph" },
+  { id: "compare", name: "Repo Compare", desc: "Side-by-side comparison of up to 4 repos", icon: "⚖️", color: "#06b6d4", subdomain: "compare.blackroad.io", href: "/compare" },
 ];
 
 export default function AppsPage() {
